@@ -28,11 +28,14 @@ else
 app.UseHttpsRedirection();
 
 #if ISRELEASE
+        // This was used because I had issues with files with lots of dots with 
+        // EmbeddedFileProvider
         ManifestEmbeddedFileProvider manifestEmbeddedFileProvider = new(Assembly.GetEntryAssembly(), "clientWwwroot/wwwroot");
 #else
         ManifestEmbeddedFileProvider manifestEmbeddedFileProvider = null;
 #endif
 
+        // Needed so that blazor files are served.
         FileExtensionContentTypeProvider provider = new();
         provider.Mappings[".cfg"] = "text/plain";
         provider.Mappings[".properties"] = "application/octect-stream";
@@ -59,6 +62,7 @@ app.UseHttpsRedirection();
         app.UseStaticFiles();
 #endif
 
+// This must be placed after the manifestEmbeddedFileProvider above.
 app.UseBlazorFrameworkFiles();
 
 app.UseRouting();
@@ -67,6 +71,7 @@ app.MapRazorPages();
 app.MapControllers();
 
 #if ISRELEASE
+        // Strange, that the FileProvider was required (index.html is not servered without).
         app.MapFallbackToFile("index.html", new StaticFileOptions
         {
             FileProvider = manifestEmbeddedFileProvider,
